@@ -1,41 +1,130 @@
-# Ansible Web Hardening & Provisioning
+# Ansible Web Provisioning
 
-Este projeto automatiza o provisionamento e o endurecimento (hardening) de um servidor web Nginx utilizando **Ansible** e **Docker**.
+## Docker Test Environment
 
-## 🚀 Funcionalidades
+Este projeto demonstra a automação de provisionamento de um servidor Nginx utilizando Ansible, com execução em ambiente efêmero via Docker para fins de validação e testes.
 
-* **Common:** Atualização de pacotes e instalação de ferramentas essenciais (vim, curl, git).
-* **Security:** Configuração de políticas de segurança (estruturado para expansão).
-* **Webserver:** Instalação do Nginx e deploy de página customizada via Jinja2 templates.
+**Objetivo:** demonstrar organização modular de roles, idempotência e automação reprodutível.
 
-## 🛠️ Tecnologias
+---
 
-* Ansible
-* Docker (Ambiente de teste leve)
-* Jinja2 Templates
+## 📦 Estrutura do Projeto
 
-## 💻 Como rodar este projeto localmente
+```
+.
+├── inventory.ini
+├── site.yml
+└── roles/
+    ├── common/
+    ├── security/
+    └── webserver/
+```
 
-1. **Suba o container de teste:**
+### Roles Disponíveis
 
-   ```bash
-   docker run -d --name meu-servidor-ansible ubuntu:latest sleep infinity
-   ```
+#### **common**
+- Atualização de pacotes
+- Instalação de utilitários básicos (vim, curl, git)
 
-2. **Prepare o container (instalação do Python):**
+#### **security**
+- Estrutura preparada para aplicação de políticas de segurança
+- (Atualmente contém apenas configurações básicas; expansível)
 
-   ```bash
-   ansible all -i inventory.ini -m raw -a "apt update && apt install -y python3"
-   ```
+#### **webserver**
+- Instalação do Nginx
+- Deploy de página HTML via template Jinja2
+- Garantia de serviço ativo
 
-3. **Execute o Playbook:**
+---
 
-   ```bash
-   ansible-playbook -i inventory.ini site.yml
-   ```
+## 🛠️ Tecnologias Utilizadas
 
-4. **Valide o resultado:**
+- **Ansible** - Orquestração e automação
+- **Docker** - Ambiente de teste efêmero
+- **Ubuntu** - Container base
+- **Jinja2 Templates** - Templates dinâmicos
 
-   ```bash
-   docker exec -it meu-servidor-ansible curl localhost
-   ```
+---
+
+## ⚙️ Ambiente de Teste
+
+O Docker é utilizado **apenas como ambiente temporário** para validação do playbook.
+
+> ⚠️ Não se trata de um cenário de produção.
+
+**Características:**
+- Container executa Ubuntu minimal
+- Python não está incluído por padrão
+- Instalação de Python é necessária antes da execução dos módulos Ansible
+
+---
+
+## ▶️ Como Executar
+
+### 1. Subir container de teste
+
+```bash
+docker run -d \
+  --name ansible-test \
+  -p 8080:80 \
+  ubuntu:24.04 \
+  sleep infinity
+```
+
+### 2. Configurar inventory.ini
+
+```ini
+[web]
+ansible-test ansible_connection=docker
+```
+
+### 3. Instalar Python no container
+
+```bash
+ansible web -i inventory.ini -m raw -a "apt update && apt install -y python3"
+```
+
+### 4. Executar o playbook
+
+```bash
+ansible-playbook -i inventory.ini site.yml
+```
+
+### 5. Validar
+
+```bash
+curl http://localhost:8080
+```
+
+---
+
+## 🔐 Observações sobre Hardening
+
+Este projeto demonstra a **estrutura modular para hardening**, mas não implementa um baseline completo de segurança de produção.
+
+### Possíveis Extensões
+
+- Configuração de headers de segurança no Nginx
+- Desativação de `server_tokens`
+- Configuração de firewall
+- Fail2ban
+- CIS hardening baseline
+
+---
+
+## 📌 Considerações Técnicas
+
+- ✅ O projeto prioriza clareza estrutural e idempotência
+- ✅ A execução em container evita dependência de infraestrutura externa
+- ✅ O uso do módulo `raw` é necessário para bootstrap do Python
+- ✅ O ambiente Docker não utiliza systemd; o controle do serviço Nginx ocorre via mecanismos compatíveis com o container
+
+---
+
+## 🎯 Objetivo Educacional
+
+Este repositório serve como base para:
+
+- Evolução para ambientes cloud (EC2, VM, VPS)
+- Integração com CI/CD
+- Expansão de políticas reais de segurança
