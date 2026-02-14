@@ -1,0 +1,25 @@
+---
+# tasks file for security role
+- name: Ensure security packages are installed
+  apt:
+    name:
+      - ufw
+      - fail2ban
+    state: present
+
+- name: Configure file permissions for web directory
+  file:
+    path: /var/www/html
+    owner: www-data
+    group: www-data
+    mode: '0755'
+    recurse: yes
+
+- name: Basic hardening - Remove unnecessary packages
+  apt:
+    name: 
+      - telnet
+      - rsh-client
+    state: absent
+
+    
